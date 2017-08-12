@@ -37,23 +37,28 @@ public class FileSaverTest {
      * Test of run method, of class FileSaver.
      */
     @Test
-    public void testRun() throws InterruptedException {
+    public void writeFileTest() throws InterruptedException {
         System.out.println("run");
+        
         BlockingQueue<ReportingApiClient.Report> queue = new LinkedBlockingQueue<>();
-        String path = "downloadTest";
-        FileSaver instance = new FileSaver(queue, path);
-        Thread t = new Thread(instance);
+        String testFolderPath = "downloadTest/files";
+        
+        // start thread
+        Thread t = new Thread(new FileSaver(queue, testFolderPath));
         t.start();
 
+        // simulate new repotr in queue
         String name = "sample";
         queue.put(new ReportingApiClient.Report(name, "content[" + name + "]"));
      
+        // lets time to execute
         Thread.currentThread().sleep(1000);
         t.interrupt();
         
-        Path p = Paths.get(path);
+        // check that new file exist
+        Path p = Paths.get(testFolderPath);
         if(Files.exists(p)){
-        Path p2 = Paths.get(path + "/" + name + ".txt");
+        Path p2 = Paths.get(testFolderPath + "/" + name + ".txt");
             assertTrue(Files.exists(p2));
         }
     }

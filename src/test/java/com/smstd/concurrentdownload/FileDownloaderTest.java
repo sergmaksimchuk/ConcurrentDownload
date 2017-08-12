@@ -34,11 +34,11 @@ public class FileDownloaderTest {
      * Test of run method, of class FileDownloader.
      */
     @Test
-    public void testRun() {
+    public void downloadTest() {
         System.out.println("run");
+        
         BlockingQueue<ReportingApiClient.Report> queue = new LinkedBlockingQueue<>();
-        FileDownloader instance = new FileDownloader(queue, 123);
-        instance.run();
+        new FileDownloader(queue, 123).run();
         
         assertEquals(queue.size(), 1);
     }
