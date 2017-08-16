@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import com.smstd.concurrentdownload.api.ReportingApiClient;
+import java.io.File;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,7 +73,7 @@ public class FileSaver implements Runnable {
                 Files.createDirectories(path);
             
             // get full path
-            String fullPathString = localStoragePath + "/" + report.getName() + ".txt";
+            String fullPathString = localStoragePath + File.separator + report.getName() + ".txt";
                     
             // convert string path to Path
             Path fullPath = Paths.get(fullPathString);

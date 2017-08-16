@@ -5,6 +5,8 @@ import com.smstd.concurrentdownload.api.ReportingApiClient;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -24,27 +26,36 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author sergiy
  */
 public class Applicant {
+    
+    private final int NUMBER_OF_PRODUCERS = 30;
+    private final int NUMBER_OF_CONSUMERS = 10;
 
-    private final int MAX_EXECUTING_LIFETIME_MILLISEC = 10000; // 10 sec
+    private final int MAX_EXECUTING_LIFETIME_MILLISEC = 60000; // 1 min
 
     public void fetchReports(int bound, String destinationPath) {
         
         // hold downloaded reports in thread-sage blocking queue
         BlockingQueue<ReportingApiClient.Report> blockingQueue = new LinkedBlockingQueue<>(bound);
-
-        // start @N_PRODUCERS to download 
-        int N_PRODUCERS = bound;
-        for (int i = 1; i <= N_PRODUCERS; i++) {
+        
+        // thread pool wich contains limited count of producers and will run 
+        // new runnable if next thread is available
+        ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_PRODUCERS);
+        
+        // how many files we want to download
+        for (int i = 1; i <= bound; i++) {
             int reportNumber = i;
-            new Thread(new FileDownloader(blockingQueue, reportNumber)).start();
+            executorService.submit(new FileDownloader(blockingQueue, reportNumber));
         }
-
+                    
+        // shutdown when previously submitted tasks will be executed
+        executorService.shutdown();
+        
+        
         // hold consumers to release later
         Queue<Thread> consumersList = new LinkedList<>();
 
-        // start @N_CONSUMERS to write files 
-        int N_CONSUMERS = 5;
-        for (int i = 1; i <= N_CONSUMERS; i++) {
+        // consumers that will write files 
+        for (int i = 1; i <= NUMBER_OF_CONSUMERS; i++) {
             Thread t = new Thread(new FileSaver(blockingQueue, destinationPath));
             t.start();
            
@@ -77,7 +88,7 @@ public class Applicant {
                 filesCount = Utils.getFilesCount(destinationPath);
 
                 System.out.println("saved files: " + String.valueOf(filesCount));
-
+                
                 // check rules
                 if (filesCountRule.check(filesCount) || elapsedTimeRule.check(elapsedTime)) {
 
