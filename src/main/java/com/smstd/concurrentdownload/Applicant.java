@@ -30,7 +30,7 @@ public class Applicant {
     private final int NUMBER_OF_PRODUCERS = 30;
     private final int NUMBER_OF_CONSUMERS = 10;
 
-    private final int MAX_EXECUTING_LIFETIME_MILLISEC = 60000; // 1 min
+    private final int MAX_EXECUTING_LIFETIME_MILLISEC = 6000; // 1 min
 
     public void fetchReports(int bound, String destinationPath) {
         
@@ -93,6 +93,9 @@ public class Applicant {
                 if (filesCountRule.check(filesCount) || elapsedTimeRule.check(elapsedTime)) {
 
                     System.out.println("terminate...");
+                    
+                    // force shutdown
+                    executorService.shutdownNow();
                     
                     // terminate all threads
                     Utils.interuptThreads(consumersList);
